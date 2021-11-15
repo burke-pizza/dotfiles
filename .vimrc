@@ -22,7 +22,6 @@ Plugin 'mileszs/ack.vim'
 " 'vim is totally an IDE' plugins
 Plugin 'rust-lang/rust.vim'
 Plugin 'w0rp/ale'
-Plugin 'Quramy/tsuquyomi'
 " QOL buffer handling
 Plugin 'qpkorr/vim-bufkill'
 " auto closing html/xml/jsx tags
@@ -33,6 +32,8 @@ Plugin 'FooSoft/vim-argwrap'
 Plugin 'AndrewRadev/sideways.vim'
 " themes
 Plugin 'dikiaap/minimalist'
+" disabled for neovim Plugin 'morhetz/gruvbox'
+Plugin 'gruvbox-community/gruvbox'
 " source for hybrid_reverse colorscheme
 Plugin 'kristijanhusak/vim-hybrid-material'
 " smarter word verbs (w/b/e etc)
@@ -52,7 +53,10 @@ Plugin 'tpope/vim-repeat'
 Plugin 'tpope/vim-fugitive'
 
 if has("nvim")
+    Plugin 'rktjmp/lush.nvim'
     Plugin 'nvim-treesitter/nvim-treesitter'
+    Plugin 'neovim/nvim-lspconfig'
+    Plugin 'williamboman/nvim-lsp-installer'
 end
 
 call vundle#end()
@@ -64,11 +68,11 @@ filetype plugin indent on
 set re=0
 
 " (vim-airline/vim-airline)
+" let g:airline_theme='gruvbox'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 1
-let g:airline_theme='bubblegum'
 " removes special characters to make file info shorter
-let g:airline_section_z = '%3p%% %3l/%L:%3v'
+let g:airline_section_z = '%3l/%L:%3v'
 let g:airline#extensions#branch#enabled = 1
 " shortens git branch name. feature/foo -> foo
 let g:airline#extensions#branch#format = 1
@@ -105,7 +109,7 @@ let g:fzf_history_dir = '~/.local/share/fzf-history'
 
 
 " (w0rp/ale)
-let g:ale_fixers = {'javascript': ['eslint']}
+let g:ale_fixers = {'javascript': []}
 
 " (FooSoft/vim-argwrap)
 let g:argwrap_tail_comma = 1
@@ -126,8 +130,8 @@ set backspace=2
 inoremap jk <ESC>
 
 " jump between buffers
-nnoremap <tab> :bnext<CR>
-nnoremap <S-tab> :bprev<CR>
+nnoremap <silent> <tab> :bnext<CR>
+nnoremap <silent> <S-tab> :bprev<CR>
 
 " redirect delete into /dev/null buffer. IOW don't yank. i think this still
 " wipes what was in the registry, so need a better solution?
@@ -261,12 +265,8 @@ let g:CommandTWildIgnore=&wildignore . ",node_modules,coverage,dist,build"
 " allow us to use the mouse like a punk
 set mouse=a
 
-" (dikiaap/minimalist)
-" colorscheme minimalist
-
-" (kristijanhusak/vim-hybrid-material)
 set background=dark
-colorscheme hybrid_reverse
+colorscheme gruvbox
 
 " highlight the current (absolute) line number to make it stand out
 hi CursorLineNR guifg=#D75F5F ctermfg=167

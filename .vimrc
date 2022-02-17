@@ -1,8 +1,8 @@
 set nocompatible
 filetype off
 
-set rtp+=~/.fzf
-set rtp+=/usr/local/opt/fzf
+" set rtp+=/opt/homebrew/bin/fzf
+set rtp+=/opt/homebrew/Cellar/fzf/0.28.0/bin/
 
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
@@ -17,11 +17,13 @@ Plugin 'vim-airline/vim-airline-themes'
 Plugin 'Xuyuanp/nerdtree-git-plugin'
 " fuzzy finder
 Plugin 'junegunn/fzf.vim'
+Plugin 'junegunn/fzf'
 " grep helper
 Plugin 'mileszs/ack.vim'
 " 'vim is totally an IDE' plugins
 Plugin 'rust-lang/rust.vim'
 Plugin 'w0rp/ale'
+Plugin 'jlcrochet/vim-razor'
 " QOL buffer handling
 Plugin 'qpkorr/vim-bufkill'
 " auto closing html/xml/jsx tags
@@ -63,9 +65,6 @@ call vundle#end()
 
 " set indent sizes by filetype
 filetype plugin indent on
-
-" fix old, bad syntax highlighting scheme. maybe unnecessary with treesitter?
-set re=0
 
 " (vim-airline/vim-airline)
 " let g:airline_theme='gruvbox'

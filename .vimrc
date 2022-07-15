@@ -22,7 +22,9 @@ Plugin 'junegunn/fzf'
 Plugin 'mileszs/ack.vim'
 " 'vim is totally an IDE' plugins
 Plugin 'rust-lang/rust.vim'
-Plugin 'w0rp/ale'
+Plugin 'jwalton512/vim-blade'
+" Plugin 'w0rp/ale'
+Plugin 'dense-analysis/ale'
 Plugin 'jlcrochet/vim-razor'
 " QOL buffer handling
 Plugin 'qpkorr/vim-bufkill'
@@ -33,7 +35,11 @@ Plugin 'FooSoft/vim-argwrap'
 " moving argument/array/object values forward and backward
 Plugin 'AndrewRadev/sideways.vim'
 " themes
+Plugin 'savq/melange'
+Plugin 'sainnhe/everforest'
 Plugin 'dikiaap/minimalist'
+Plugin 'junegunn/seoul256.vim'
+Plugin 'haystackandroid/strawberry'
 " disabled for neovim Plugin 'morhetz/gruvbox'
 Plugin 'gruvbox-community/gruvbox'
 " source for hybrid_reverse colorscheme
@@ -53,12 +59,20 @@ Plugin 'tpope/vim-surround'
 Plugin 'tpope/vim-repeat'
 " git helper
 Plugin 'tpope/vim-fugitive'
+Plugin 'tommcdo/vim-fubitive'
+Plugin 'tpope/vim-sleuth'
+
+Plugin 'prettier/vim-prettier'
 
 if has("nvim")
     Plugin 'rktjmp/lush.nvim'
     Plugin 'nvim-treesitter/nvim-treesitter'
     Plugin 'neovim/nvim-lspconfig'
     Plugin 'williamboman/nvim-lsp-installer'
+    Plugin 'nvim-lua/plenary.nvim'
+    Plugin 'nvim-telescope/telescope.nvim'
+    Plugin 'nvim-telescope/telescope-fzf-native.nvim'
+    Plugin 'lewis6991/gitsigns.nvim'
 end
 
 call vundle#end()
@@ -73,7 +87,7 @@ let g:airline_powerline_fonts = 1
 " removes special characters to make file info shorter
 let g:airline_section_z = '%3l/%L:%3v'
 let g:airline#extensions#branch#enabled = 1
-" shortens git branch name. feature/foo -> foo
+" shortens git branch name. origin/feature/foo -> foo
 let g:airline#extensions#branch#format = 1
 " don't render the empty space of the sections we hide
 let g:airline_skip_empty_sections = 1
@@ -96,9 +110,6 @@ let g:airline_mode_map = {
 \ 't'  : 'T',
 \ }
 
-" (wincent/command-t)
-" let g:CommandTHighlightColor = 'white'
-
 " fzf
 " Enable per-command history
 " - History files will be stored in the specified directory
@@ -108,7 +119,12 @@ let g:fzf_history_dir = '~/.local/share/fzf-history'
 
 
 " (w0rp/ale)
-let g:ale_fixers = {'javascript': []}
+let g:ale_fixers = {
+\    'javascript': ['prettier'],
+\    'css': ['prettier'],
+\    'scss': ['prettier'],
+\    'php': ['prettier']
+\}
 
 " (FooSoft/vim-argwrap)
 let g:argwrap_tail_comma = 1
@@ -143,17 +159,17 @@ nnoremap <leader>bd :BD<CR>
 noremap <leader>s :update<CR>
 
 " (scrooloose/nerdtree)
-nnoremap <leader>n :NERDTreeToggle<CR>
+nnoremap <leader>nt :NERDTreeToggle<CR>
 
 " opens nerdtree and jumps the cursor to the directory location of the active
 " buffer
-nnoremap <leader>f :NERDTreeFind<CR>
+nnoremap <leader>nf :NERDTreeFind<CR>
 
 " quick n dirty grepping. query is a text literal and not regex per `-F`.
 " `-W` truncates output to 100 characters of the matching line, so the output
-" doesn't take forever to print fun fact: results open in a quickfix window
-" you can do :cfdo stuff in this will grep from whatever directory vim is
-" operating out of, (check with :pwd)
+" doesn't take forever to print.
+" results open in a quickfix window you can do :cfdo stuff in.
+" this will grep from your pwd.
 nnoremap <leader>/ :Ack!<space>-W<space>100<space>-F<space>""<left>
 
 " puts the absolute path of the active buffer in your system clipboard
@@ -162,7 +178,7 @@ nnoremap <leader>cp :let @+=expand("%:p")<CR>
 " attempt to open path under cursor in a vertical split
 nnoremap <silent> <C-w>f :vert wincmd f<CR>
 
-" don't remember what this does. might check system clipboard when pasting?
+" i don't remember what this does.
 xnoremap <silent> p p:let @+=@0<CR>
 
 " easier switching focus between window splits
@@ -184,7 +200,7 @@ nnoremap <silent> <leader>a :ArgWrap<CR>
 nnoremap <leader>h :SidewaysLeft<CR>
 nnoremap <leader>l :SidewaysRight<CR>
 
-nnoremap <leader>t :FZF<CR>
+" nnoremap <leader>t :FZF<CR>
 
 " // while in visual mode to forward search what's visually highlighted.
 " this does a text literal search, NOT regexp.
@@ -216,8 +232,8 @@ set clipboard=unnamed
 " what is your team's current indentation scheme?
 set autoindent
 set expandtab
-set tabstop=2
-set shiftwidth=2
+set tabstop=4
+set shiftwidth=4
 
 " auto reload files when they're changed outside of vim
 " (I think) unless they're deleted
@@ -233,8 +249,15 @@ set splitright
 " multiple buffers open in a session
 set hidden
 
-" lines of code will not wrap to the next line
-set nowrap
+" softwrap on word boundaries at 80 chars (ignoring gutter)
+set wrap
+set linebreak
+set textwidth=80
+" indent 4 chars from the the indent depth of the wrapped line
+set breakindent
+set breakindentopt=shift:4,sbr
+" little gutter guy to indicate a line is part of a softwrap
+set showbreak=>>
 
 " ignore case when searching
 set ignorecase
@@ -242,30 +265,29 @@ set ignorecase
 " ... unless there's a capital letter in the query
 set smartcase
 
-" enable 256 colors
-let base16colorspace=256
-set t_CO=256
-
 " use visual bells instead of audio
 set noerrorbells
 
 " delete trailing whitespace on save
 autocmd BufWritePre * %s/\s\+$//e
 
-" silently back up the vimrc to Dropbox on save
-" autocmd BufWritePost ~/.vimrc :silent !cp ~/.vimrc ~/Dropbox/dotfiles/.vimrc
-" bash_profile too
-" autocmd BufWritePost ~/.bash_profile :silent !cp ~/.bash_profile ~/Dropbox/dotfiles/.bash_profile
+" write hook that converts the active markdown buffer to html with pandoc then
+" opens the html in a browser tab. after a second, rm the file so git isn't
+" polluted. as long as the browser tab stays open, this command will refresh
+" that page rather than opening a new tab.
+if executable('pandoc')
+    autocmd BufWritePost *.md silent !pandoc %
+        \ -f markdown -t html --css ~/github-markdown.css -s -o render.html
+        \ && open render.html -g && sleep 1 && rm render.html
+endif
 
-" don't ingest unnecessary huge folders when loading fuzzy matching uses vim's
-" default wildignore matches
-let g:CommandTWildIgnore=&wildignore . ",node_modules,coverage,dist,build"
-
-" allow us to use the mouse like a punk
+" enable mouse input like the coward you are
 set mouse=a
 
 set background=dark
-colorscheme gruvbox
+let g:everforest_enable_italic=1
+set termguicolors
+colorscheme everforest
 
 " highlight the current (absolute) line number to make it stand out
 hi CursorLineNR guifg=#D75F5F ctermfg=167
@@ -282,30 +304,23 @@ set foldmethod=syntax
 set foldlevel=99
 
 " start searching before we hit enter when we do /
-" this might be on by default in neovim
 set incsearch
 
 " highlight matching search results
 set hlsearch
-" after doing a search, hit enter to silently clear
-" highlighting until the next search
+
+" after doing a search, hit enter to silently clear highlighting until the
+" next search. this doesn't remove the search term from vim's state, so you
+" can still do "cgn" etc.
 nnoremap <silent> <CR> :noh<CR><CR>
 
 " make search results visually stand out
 hi Search cterm=bold,underline
 
 " Delete comment character when joining commented lines.
-" requires vim 7 or up. just get vim 8, dummy
-if v:version > 703 || v:version == 703 && has("patch541")
-  set formatoptions+=j
-endif
+set formatoptions+=j
 
-" use a different default font if we're using MacVim
-if has("gui_macvim")
-    " you can get Source Code Pro and a billion other fonts with Homebrew:
-    " brew tap caskroom/fonts -> brew cask install source-code-pro
-    set guifont=Source\ Code\ Pro:h13
-endif
+vnoremap <leader><C-p> :PrettierFragment<CR>
 
 " opens the git history of currently visually selected lines.
 " slightly less buggy than vim-fugitive's Glog. useful
@@ -328,39 +343,3 @@ endfunction
 " i vow never to write another line of vimscript
 
 vnoremap <C-l> :call GitDiffFileRange()<CR>
-
-" LAB WEEK SPRING 2020
-let $CACA_DRIVER = 'ncurses'
-nnoremap <leader>oa :execute "terminal ++close mplayer -prefer-ipv4 -really-quiet -vo caca -nosound -playlist " . expand("<cfile>")<cr>
-nnoremap <leader>ob :execute "ver terminal ++curwin ++close mplayer -prefer-ipv4 -really-quiet -vo caca -nosound -playlist " . expand("<cfile>")<cr>
-" /Users/kburke348/Downloads/bbb.m3u8
-" http://multiplatform-f.akamaihd.net/i/multi/april11/cctv/cctv_,512x288_450_b,640x360_700_b,768x432_1000_b,1024x576_1400_m,.mp4.csmil/master.m3u8
-" http://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8
-
-
-
-" # CHEATSHEET
-"http://rdmedia.bbc.co.uk/dash/ondemand/bbb/2/client_manifest-common_init.mpd
-" http://dash.akamaized.net/dash264/TestCases/1a/sony/SNE_DASH_SD_CASE1A_REVISED.mpd
-" ## Mega-global find/replace
-" Example: replace foo with bar everywhere in the current project
-" <space>/ foo
-" (a quickfix window should open through ack.vim)
-" :cfdo %s//bar/gce
-" %s// -> captures the text found by ack.vim so you don't have to type it out
-" again
-" bar -> what you want to replace it with
-" g -> replaces every occurrence in the matched file
-" c -> confirm each replacement
-" e -> swallow errors
-"
-"
-" ## Equalize split buffer sizes
-" <ctrl-w>=
-"
-" ## Quickfix + Macro
-" Example: do something too complicated for a single sed command
-" in all of your quickfix buffers.
-" :cfdo :norm! @a
-" :norm! -> switch to normal mode before executing the next command (our macro)
-" @a -> run the macro 'a'. can also do @@ to execute the last run macro

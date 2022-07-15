@@ -3,7 +3,13 @@ let &packpath = &runtimepath
 source ~/.vimrc
 
 lua << EOF
+require('telescope').setup()
+require('telescope').load_extension('fzf')
+
+require('gitsigns').setup()
+
 local nvim_lsp = require('lspconfig')
+vim.lsp.set_log_level("debug")
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
@@ -32,21 +38,21 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
   buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
   buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
-
 end
 
--- Use a loop to conveniently call 'setup' on multiple servers and
--- map buffer local keybindings when the language server attaches
-local servers = { 'tsserver' }
+local servers = { 'intelephense', 'tsserver', 'tailwindcss', 'rls' }
 for _, lsp in ipairs(servers) do
   nvim_lsp[lsp].setup {
     on_attach = on_attach,
     flags = {
-      debounce_text_changes = 150,
+      debounce_text_changes = 100,
     }
   }
 end
+local pid = vim.fn.getpid()
+
 EOF
 
-set background=dark
-colorscheme gruvbox
+nnoremap <leader>t <cmd>lua require('telescope.builtin').find_files()<cr>
+nnoremap <leader>lg <cmd>lua require('telescope.builtin').live_grep()<cr>
+tnoremap jk <C-\><C-n>

@@ -1,3 +1,14 @@
+" TODO:
+"  - See how much of these settings and remaps match Neovim's defaults
+"  - Swap Vundle out with packer.nvim or vim-plug
+"  - Combine this file and ~/.config/nvim/init.vim
+"  - See how much of this Just Works in the Windows build of Qt-Nvim
+"  - Unfuck fzf configuration, which is probably blocking Windows compat
+"  - Plugin research:
+"   - coc.nvim
+"  - What's this guy's deal: https://github.com/shxfee/dotfiles/tree/master/nvim
+"
+
 set nocompatible
 filetype off
 
@@ -23,6 +34,7 @@ Plugin 'mileszs/ack.vim'
 " 'vim is totally an IDE' plugins
 Plugin 'rust-lang/rust.vim'
 Plugin 'jwalton512/vim-blade'
+Plugin 'prisma/vim-prisma'
 " Plugin 'w0rp/ale'
 Plugin 'dense-analysis/ale'
 Plugin 'jlcrochet/vim-razor'
@@ -73,12 +85,19 @@ if has("nvim")
     Plugin 'nvim-telescope/telescope.nvim'
     Plugin 'nvim-telescope/telescope-fzf-native.nvim'
     Plugin 'lewis6991/gitsigns.nvim'
+    Plugin 'hrsh7th/cmp-nvim-lsp'
+    Plugin 'hrsh7th/cmp-buffer'
+    Plugin 'hrsh7th/nvim-cmp'
 end
 
 call vundle#end()
 
 " set indent sizes by filetype
 filetype plugin indent on
+
+set completeopt=menu,menuone,noselect
+
+let g:ale_enabled = 0
 
 " (vim-airline/vim-airline)
 " let g:airline_theme='gruvbox'
@@ -119,12 +138,6 @@ let g:fzf_history_dir = '~/.local/share/fzf-history'
 
 
 " (w0rp/ale)
-let g:ale_fixers = {
-\    'javascript': ['prettier'],
-\    'css': ['prettier'],
-\    'scss': ['prettier'],
-\    'php': ['prettier']
-\}
 
 " (FooSoft/vim-argwrap)
 let g:argwrap_tail_comma = 1
@@ -200,6 +213,9 @@ nnoremap <silent> <leader>a :ArgWrap<CR>
 nnoremap <leader>h :SidewaysLeft<CR>
 nnoremap <leader>l :SidewaysRight<CR>
 
+" Preview markdown in the browser; deletes the generated html as soon as the
+" page has been opened.
+nnoremap <silent> <leader><C-r> :!pandoc % -f markdown -t html --css ~/github-markdown.css -s -o /tmp/render.html && open /tmp/render.html -g<CR>
 " nnoremap <leader>t :FZF<CR>
 
 " // while in visual mode to forward search what's visually highlighted.
@@ -231,9 +247,9 @@ set clipboard=unnamed
 
 " what is your team's current indentation scheme?
 set autoindent
-set expandtab
-set tabstop=4
-set shiftwidth=4
+set noexpandtab
+set tabstop=2
+set shiftwidth=2
 
 " auto reload files when they're changed outside of vim
 " (I think) unless they're deleted
@@ -271,20 +287,11 @@ set noerrorbells
 " delete trailing whitespace on save
 autocmd BufWritePre * %s/\s\+$//e
 
-" write hook that converts the active markdown buffer to html with pandoc then
-" opens the html in a browser tab. after a second, rm the file so git isn't
-" polluted. as long as the browser tab stays open, this command will refresh
-" that page rather than opening a new tab.
-if executable('pandoc')
-    autocmd BufWritePost *.md silent !pandoc %
-        \ -f markdown -t html --css ~/github-markdown.css -s -o render.html
-        \ && open render.html -g && sleep 1 && rm render.html
-endif
-
 " enable mouse input like the coward you are
 set mouse=a
 
 set background=dark
+let g:gruvbox_italic=1
 let g:everforest_enable_italic=1
 set termguicolors
 colorscheme everforest
@@ -343,3 +350,36 @@ endfunction
 " i vow never to write another line of vimscript
 
 vnoremap <C-l> :call GitDiffFileRange()<CR>
+
+" LAB WEEK SPRING 2020
+let $CACA_DRIVER = 'ncurses'
+nnoremap <leader>oa :execute "terminal ++close mplayer -prefer-ipv4 -really-quiet -vo caca -nosound -playlist " . expand("<cfile>")<cr>
+nnoremap <leader>ob :execute "ver terminal ++curwin ++close mplayer -prefer-ipv4 -really-quiet -vo caca -nosound -playlist " . expand("<cfile>")<cr>
+" /Users/kburke348/Downloads/bbb.m3u8
+" http://multiplatform-f.akamaihd.net/i/multi/april11/cctv/cctv_,512x288_450_b,640x360_700_b,768x432_1000_b,1024x576_1400_m,.mp4.csmil/master.m3u8
+" http://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8
+
+
+" # CHEATSHEET
+"
+" ## Mega-global find/replace
+" Example: replace foo with bar everywhere in the current project
+" <space>/ foo
+" (a quickfix window should open through ack.vim)
+" :cfdo %s//bar/gce
+" %s// -> captures the text found by ack.vim so you don't have to type it out
+" again
+" bar -> what you want to replace it with
+" g -> replaces every occurrence in the matched file
+" c -> confirm each replacement
+" e -> swallow errors
+"
+" ## Equalize split buffer sizes
+" <ctrl-w>=
+"
+" ## Quickfix + Macro
+" Example: do something too complicated for a single sed command
+" in all of your quickfix buffers.
+" :cfdo :norm! @a
+" :norm! -> switch to normal mode before executing the next command (our macro)
+" @a -> run the macro 'a'. can also do @@ to execute the last run macro
